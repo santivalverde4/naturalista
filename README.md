@@ -2,8 +2,6 @@
 
 A personal progressive web app (PWA) for managing a plant collection. Naturalista uses Next.js for the application, Google Sheets as a lightweight data store, and Vercel for deployment.
 
-Live app: [naturalista.vercel.app](https://naturalista.vercel.app)
-
 ## Features
 
 - **Collection** — keep track of the plants currently at home.
