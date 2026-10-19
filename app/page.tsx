@@ -53,7 +53,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <p className="font-semibold mb-1">Aviso de configuracion</p>
           <p className="text-amber-800">{configError}</p>
           <p className="text-xs text-amber-700 mt-2">
-            Copia el archivo .env.example a .env.local y completa tus credenciales de Google Cloud y el ID de tu Google Sheet.
+            Verifica tus credenciales de Google Cloud y el ID de tu Google Sheet en tu archivo .env o .env.local.
           </p>
         </div>
       )}

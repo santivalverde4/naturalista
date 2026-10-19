@@ -2,8 +2,25 @@ import { google } from 'googleapis';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
+function formatPrivateKey(raw: string): string {
+  let key = raw.trim();
+  // Eliminar coma final si fue copiada directamente de un archivo JSON
+  if (key.endsWith(',')) {
+    key = key.slice(0, -1).trim();
+  }
+  // Eliminar comillas envolventes si estan presentes
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+  // Convertir saltos de linea escapados a saltos reales
+  return key.replace(/\\n/g, '\n').replace(/\r/g, '');
+}
+
 export function getAuthClient() {
-  const email = process.env.GOOGLE_CLIENT_EMAIL;
+  const email = process.env.GOOGLE_CLIENT_EMAIL?.trim();
   const privateKey = process.env.GOOGLE_PRIVATE_KEY;
 
   if (!email || !privateKey) {
@@ -12,8 +29,7 @@ export function getAuthClient() {
 
   return new google.auth.JWT({
     email,
-    // Vercel escapa los \n en env vars — los restauramos aquí
-    key: privateKey.replace(/\\n/g, '\n'),
+    key: formatPrivateKey(privateKey),
     scopes: SCOPES,
   });
 }
