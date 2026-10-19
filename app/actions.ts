@@ -1,6 +1,13 @@
 'use server';
 
-import { getSheetsClient, getSheetId, TABS, TabName } from '@/lib/sheets';
+import {
+  getSheetsClient,
+  getSheetId,
+  TABS,
+  TabName,
+  resolveSheetInfo,
+  escapeSheetRange,
+} from '@/lib/sheets';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { revalidatePath } from 'next/cache';
 
@@ -42,17 +49,18 @@ export async function getPlants(tab: TabName): Promise<Plant[]> {
   }
 
   const sheets = getSheetsClient();
-  const sheetName = TABS[tab];
   const spreadsheetId = getSheetId();
+  const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
 
+  const range = escapeSheetRange(sheetInfo.title, 'A2:E1000');
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A2:E1000`,
+    range,
   });
 
   const rows = res.data.values ?? [];
   return rows
-    .filter((row) => row[0]) // filtra filas vacías
+    .filter((row) => row && row[0]) // filtra filas vacías
     .map(([id, familia, genero, especie, fecha]) => ({
       id: id ?? '',
       familia: familia ?? '',
@@ -81,8 +89,35 @@ export async function addPlant(
   }
 
   const sheets = getSheetsClient();
-  const sheetName = TABS[tab];
   const spreadsheetId = getSheetId();
+  const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
+
+  // Asegura encabezados si la hoja está totalmente vacía
+  const headerRange = escapeSheetRange(sheetInfo.title, 'A1:E1');
+  try {
+    const headerRes = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: headerRange,
+    });
+    if (
+      !headerRes.data.values ||
+      headerRes.data.values.length === 0 ||
+      !headerRes.data.values[0] ||
+      headerRes.data.values[0].length === 0
+    ) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: headerRange,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [['id', 'Familia', 'Genero', 'Especie', 'fecha_agregado']],
+        },
+      });
+    }
+  } catch {
+    // Si falla la verificación de encabezados, continúa con el append
+  }
+
   const id = Date.now().toString();
   const fecha = new Date().toLocaleDateString('es-CR', {
     day: '2-digit',
@@ -94,9 +129,10 @@ export async function addPlant(
   const safeGenero = sanitizeCell(data.genero);
   const safeEspecie = sanitizeCell(data.especie);
 
+  const appendRange = escapeSheetRange(sheetInfo.title, 'A1');
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${sheetName}!A1`,
+    range: appendRange,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[id, safeFamilia, safeGenero, safeEspecie, fecha]],
@@ -122,33 +158,22 @@ export async function deletePlant(tab: TabName, plantId: string) {
   }
 
   const sheets = getSheetsClient();
-  const sheetName = TABS[tab];
   const spreadsheetId = getSheetId();
+  const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
 
-  // Primero obtenemos todos los IDs para encontrar el índice de fila
+  // Obtenemos todos los IDs para encontrar el índice de fila
+  const range = escapeSheetRange(sheetInfo.title, 'A2:A1000');
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A2:A1000`,
+    range,
   });
 
   const ids = res.data.values ?? [];
-  const rowIndex = ids.findIndex((row) => row[0] === plantId);
+  const rowIndex = ids.findIndex((row) => row && row[0] === plantId);
 
   if (rowIndex === -1) return; // No encontrada
 
-  // Obtenemos el sheetId (numérico) de la pestaña
-  const meta = await sheets.spreadsheets.get({
-    spreadsheetId,
-  });
-
-  const sheet = meta.data.sheets?.find(
-    (s) => s.properties?.title === sheetName
-  );
-  const sheetId = sheet?.properties?.sheetId;
-
-  if (sheetId === undefined) return;
-
-  // rowIndex + 1 porque empezamos a leer desde A2 (saltamos encabezado)
+  const sheetId = sheetInfo.sheetId;
   const realRowIndex = rowIndex + 1;
 
   await sheets.spreadsheets.batchUpdate({
@@ -171,3 +196,4 @@ export async function deletePlant(tab: TabName, plantId: string) {
 
   revalidatePath('/');
 }
+
