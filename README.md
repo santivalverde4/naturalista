@@ -1,114 +1,155 @@
 # Naturalista
 
-PWA personal para registrar mi colección de plantas. Construida con Next.js 14, Google Sheets como base de datos, y deployada en Vercel.
+A personal progressive web app (PWA) for managing a plant collection. Naturalista uses Next.js for the application, Google Sheets as a lightweight data store, and Vercel for deployment.
 
-## Stack
-
-- **Next.js 14** (App Router + Server Actions)
-- **Tailwind CSS** — UI mobile-first
-- **Google Sheets API v4** — almacenamiento gratuito
-- **Vercel** — deploy gratuito
+Live app: [naturalista.vercel.app](https://naturalista.vercel.app)
 
 ## Features
 
-- **Colección** — plantas que tengo en casa
-- **Muertas** — las que ya no están con nosotros
-- **Wishlist** — las que quiero tener
-- Búsqueda por familia, género o especie
-- Agregar plantas con modal estilo iOS
-- Eliminar plantas
-- Instalable como PWA en iPhone
+- **Collection** — keep track of the plants currently at home.
+- **Deceased** — archive plants that are no longer part of the collection.
+- **Wishlist** — save plants you would like to add in the future.
+- Search by family, genus, or species.
+- Add plants through a mobile-friendly bottom-sheet modal.
+- Delete plants from the collection.
+- Install the app on supported mobile devices as a PWA.
+- Password-protected access using environment variables.
 
----
+## Tech stack
 
-## Setup local
+- **Next.js 14** with the App Router and Server Actions.
+- **React 18**.
+- **Tailwind CSS** for the mobile-first UI.
+- **Google Sheets API v4** for data storage.
+- **Vercel** for deployment.
+- **TypeScript** for type-safe application code.
 
-### 1. Instalar dependencias
+## Prerequisites
+
+- Node.js and npm installed locally.
+- A Google Cloud project with the Google Sheets API enabled.
+- A Google service account with access to the spreadsheet.
+- A Google Spreadsheet with the worksheets described below.
+
+## Local development
+
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configurar Google Sheets
+### 2. Configure Google Sheets
 
-1. Ir a [Google Cloud Console](https://console.cloud.google.com/)
-2. Crear un proyecto nuevo
-3. Habilitar la **Google Sheets API**
-4. Crear un **Service Account** y descargar el JSON key
-5. Crear un Google Spreadsheet con **3 pestañas**:
-- `Coleccion`
-- `Muertas`
-- `Wishlist`
-6. En cada pestaña, poner en la fila 1 los encabezados: `id | Familia | Genero | Especie | fecha_agregado`
-7. Compartir el Spreadsheet con el email del Service Account (rol: **Editor**)
+1. Open the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create or select a Google Cloud project.
+3. Enable the **Google Sheets API**.
+4. Create a **service account** and generate a JSON key.
+5. Create a Google Spreadsheet with these three worksheets:
+   - `Coleccion`
+   - `Muertas`
+   - `Wishlist`
+6. Add the following headers to row 1 of each worksheet:
 
-### 3. Variables de entorno
+   `id | Familia | Genero | Especie | fecha_agregado`
 
-Copiar `.env.example` como `.env.local` y llenar los valores:
+7. Share the spreadsheet with the service account email and grant it **Editor** access.
+
+### 3. Configure environment variables
+
+Copy the example file and add your credentials:
 
 ```bash
 cp .env.example .env.local
 ```
 
+Then update `.env.local`:
+
 ```env
-GOOGLE_SHEET_ID=1ABC...xyz
-GOOGLE_CLIENT_EMAIL=naturalista@mi-proyecto.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-AUTH_USER=tu_usuario
-AUTH_PASSWORD=tu_contrasena_segura
+GOOGLE_SHEET_ID=your_spreadsheet_id
+GOOGLE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key\n-----END PRIVATE KEY-----\n"
+AUTH_USER=your_username
+AUTH_PASSWORD=your_secure_password
 ```
 
-> **Nota**: El `GOOGLE_PRIVATE_KEY` debe tener los saltos de línea como `\n` literal (no saltos reales) cuando se copia desde el JSON key.
+### Environment variables
 
-### 4. Correr en desarrollo
+| Variable | Description |
+| --- | --- |
+| `GOOGLE_SHEET_ID` | The ID of the Google Spreadsheet. It is the value between `/d/` and `/edit` in the spreadsheet URL. |
+| `GOOGLE_CLIENT_EMAIL` | The email address of the Google service account. |
+| `GOOGLE_PRIVATE_KEY` | The service account private key. Keep the newline characters as literal `\n` sequences in `.env.local` and in Vercel. |
+| `AUTH_USER` | Username required to access the application. |
+| `AUTH_PASSWORD` | Password required to access the application. |
+
+> **Security:** Never commit `.env.local` or expose Google service account credentials in client-side code. Store production secrets in Vercel project settings.
+
+### 4. Start the development server
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
+## Available scripts
 
-## Deploy en Vercel
-
-1. Push el código a GitHub
-2. Importar el repo en [Vercel](https://vercel.com)
-3. Agregar las variables de entorno en **Settings → Environment Variables**:
-- `GOOGLE_SHEET_ID`
-- `GOOGLE_CLIENT_EMAIL`
-- `GOOGLE_PRIVATE_KEY`
-- `AUTH_USER`
-- `AUTH_PASSWORD`
-4. Deploy
-
-### Instalar en iPhone
-
-1. Abrir la URL de Vercel en **Safari**
-2. Tocar el botón de compartir (cuadrado con flecha)
-3. Seleccionar **"Agregar a pantalla de inicio"**
-4. ¡Listo! La app aparece como ícono nativo
-
----
-
-## Estructura del proyecto
-
+```bash
+npm run dev      # Start the development server
+npm run build    # Create a production build
+npm run start    # Start the production server
 ```
+
+## Deployment on Vercel
+
+1. Push the repository to GitHub.
+2. Import the repository into [Vercel](https://vercel.com/).
+3. Add the following variables under **Project Settings → Environment Variables**:
+   - `GOOGLE_SHEET_ID`
+   - `GOOGLE_CLIENT_EMAIL`
+   - `GOOGLE_PRIVATE_KEY`
+   - `AUTH_USER`
+   - `AUTH_PASSWORD`
+4. Deploy the project.
+
+Vercel automatically detects the Next.js application and uses the project scripts for the build and production start commands.
+
+## Install on an iPhone
+
+1. Open the deployed app in **Safari**.
+2. Tap the **Share** button.
+3. Select **Add to Home Screen**.
+4. Confirm by tapping **Add**.
+
+The application will then be available from the iPhone home screen like an app.
+
+## Project structure
+
+```text
 naturalista/
 ├── app/
-│ ├── actions.ts # Server Actions: leer, agregar, eliminar plantas
-│ ├── globals.css
-│ ├── layout.tsx # Root layout + PWA meta tags
-│ ├── manifest.ts # Web App Manifest (installable PWA)
-│ └── page.tsx # Página principal
+│   ├── actions.ts          # Server Actions for reading, adding, and deleting plants
+│   ├── globals.css         # Global styles
+│   ├── layout.tsx          # Root layout and application metadata
+│   ├── manifest.ts         # Web App Manifest for PWA installation
+│   └── page.tsx            # Main page
 ├── components/
-│ ├── AddPlantModal.tsx # Modal bottom-sheet para agregar
-│ ├── PlantTable.tsx # Tabla de plantas con delete
-│ ├── SearchBar.tsx # Búsqueda con URL params
-│ └── TabNav.tsx # Navegación entre pestañas
+│   ├── AddPlantModal.tsx   # Bottom-sheet modal for adding plants
+│   ├── PlantTable.tsx      # Plant table and delete actions
+│   ├── SearchBar.tsx       # Search input and URL parameters
+│   └── TabNav.tsx          # Collection navigation
 ├── lib/
-│ └── sheets.ts # Cliente Google Sheets API
-└── public/
-├── icon-192x192.png
-└── icon-512x512.png
+│   └── sheets.ts           # Google Sheets API client
+├── public/
+│   ├── icon-192x192.png    # PWA icon
+│   └── icon-512x512.png    # PWA icon
+├── .env.example            # Environment variable template
+└── package.json            # Project scripts and dependencies
 ```
+
+## Notes
+
+- The worksheet names and header order must match the values expected by the application.
+- Google Sheets is intended here as a simple, low-cost personal data store rather than a high-throughput production database.
+- If you change the authentication or spreadsheet configuration, restart the development server so the new environment variables are loaded.
