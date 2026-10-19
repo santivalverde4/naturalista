@@ -18,7 +18,6 @@ export type Plant = {
   familia: string;
   genero: string;
   especie: string;
-  fecha: string;
 };
 
 /**
@@ -35,7 +34,7 @@ function sanitizeCell(value: string | undefined | null): string {
 
 /**
  * Lee todas las plantas de una pestaña del Spreadsheet.
- * Salta la fila 1 (encabezados) y lee hasta la fila 1000.
+ * Salta la fila 1 (encabezados).
  */
 export async function getPlants(tab: TabName): Promise<Plant[]> {
   if (!TABS[tab]) {
@@ -52,7 +51,7 @@ export async function getPlants(tab: TabName): Promise<Plant[]> {
   const spreadsheetId = getSheetId();
   const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
 
-  const range = escapeSheetRange(sheetInfo.title, 'A2:E1000');
+  const range = escapeSheetRange(sheetInfo.title, 'A2:D');
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range,
@@ -61,18 +60,17 @@ export async function getPlants(tab: TabName): Promise<Plant[]> {
   const rows = res.data.values ?? [];
   return rows
     .filter((row) => row && row[0]) // filtra filas vacías
-    .map(([id, familia, genero, especie, fecha]) => ({
+    .map(([id, familia, genero, especie]) => ({
       id: id ?? '',
       familia: familia ?? '',
       genero: genero ?? '',
       especie: especie ?? '',
-      fecha: fecha ?? '',
     }));
 }
 
 /**
  * Agrega una planta nueva al final de una pestaña.
- * Genera un ID basado en timestamp y guarda la fecha actual.
+ * Genera un UUID para el id y guarda solo id, familia, genero y especie.
  */
 export async function addPlant(
   tab: TabName,
@@ -93,7 +91,7 @@ export async function addPlant(
   const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
 
   // Asegura encabezados si la hoja está totalmente vacía
-  const headerRange = escapeSheetRange(sheetInfo.title, 'A1:E1');
+  const headerRange = escapeSheetRange(sheetInfo.title, 'A1:D1');
   try {
     const headerRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -110,7 +108,7 @@ export async function addPlant(
         range: headerRange,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [['id', 'Familia', 'Genero', 'Especie', 'fecha_agregado']],
+          values: [['id', 'Familia', 'Genero', 'Especie']],
         },
       });
     }
@@ -118,24 +116,20 @@ export async function addPlant(
     // Si falla la verificación de encabezados, continúa con el append
   }
 
-  const id = Date.now().toString();
-  const fecha = new Date().toLocaleDateString('es-CR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+  const id = crypto.randomUUID();
 
   const safeFamilia = sanitizeCell(data.familia);
   const safeGenero = sanitizeCell(data.genero);
   const safeEspecie = sanitizeCell(data.especie);
 
-  const appendRange = escapeSheetRange(sheetInfo.title, 'A1');
+  const appendRange = escapeSheetRange(sheetInfo.title, 'A:D');
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: appendRange,
     valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
     requestBody: {
-      values: [[id, safeFamilia, safeGenero, safeEspecie, fecha]],
+      values: [[id, safeFamilia, safeGenero, safeEspecie]],
     },
   });
 
@@ -162,7 +156,7 @@ export async function deletePlant(tab: TabName, plantId: string) {
   const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
 
   // Obtenemos todos los IDs para encontrar el índice de fila
-  const range = escapeSheetRange(sheetInfo.title, 'A2:A1000');
+  const range = escapeSheetRange(sheetInfo.title, 'A2:A');
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range,
