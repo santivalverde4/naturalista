@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="es">
       <head>
         {/* Apple touch icon para "Agregar a pantalla de inicio" */}
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body>{children}</body>
     </html>
