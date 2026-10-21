@@ -12,6 +12,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
   const tab = (params.tab ?? 'coleccion') as TabName;
   const query = (params.q ?? '').toLowerCase();
+  const sheetUrl = process.env.ENLACE_SHEET;
 
   let plants: Plant[] = [];
   let configError = '';
@@ -36,7 +37,18 @@ export default async function Home({ searchParams }: HomeProps) {
       <div className="flex justify-between items-start mb-5">
         <div>
           <h1 className="text-2xl font-bold text-green-800">Naturalista</h1>
-          <p className="text-sm text-green-600">Mi colección de plantas</p>
+          {sheetUrl ? (
+            <a
+              href={sheetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-green-600 hover:text-green-800 hover:underline"
+            >
+              Ver Sheets
+            </a>
+          ) : (
+            <p className="text-sm text-green-600">Ver Sheets</p>
+          )}
         </div>
         <form action={logoutAction}>
           <button

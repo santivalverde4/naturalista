@@ -67,6 +67,8 @@ export default function PlantTable({
               <span className="italic text-gray-500 truncate">
                 {plant.especie || '—'}
               </span>
+              <div className="flex items-center gap-3">
+                <AddPlantModal tab={tab} plant={plant} />
               <button
                 onClick={() => handleDelete(plant.id)}
                 disabled={isPending}
@@ -75,6 +77,7 @@ export default function PlantTable({
               >
                 ×
               </button>
+              </div>
             </div>
           ))}
         </div>

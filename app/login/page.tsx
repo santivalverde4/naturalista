@@ -26,7 +26,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-green-800">Naturalista</h1>
-          <p className="text-sm text-green-600 mt-1">Acceso a mi coleccion</p>
+          <p className="text-sm text-green-600 mt-1">Mi colección Épica xd</p>
         </div>
 
         {state?.error && (

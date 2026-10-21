@@ -69,6 +69,7 @@ GOOGLE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key\n-----END PRIVATE KEY-----\n"
 AUTH_USER=your_username
 AUTH_PASSWORD=your_secure_password
+ENLACE_SHEET=https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit
 ```
 
 ### Environment variables
@@ -80,6 +81,7 @@ AUTH_PASSWORD=your_secure_password
 | `GOOGLE_PRIVATE_KEY` | The service account private key. Keep the newline characters as literal `\n` sequences in `.env.local` and in Vercel. |
 | `AUTH_USER` | Username required to access the application. |
 | `AUTH_PASSWORD` | Password required to access the application. |
+| `ENLACE_SHEET` | Full URL used by the `Ver Sheets` link in the application. |
 
 > **Security:** Never commit `.env.local` or expose Google service account credentials in client-side code. Store production secrets in Vercel project settings.
 
@@ -109,6 +111,7 @@ npm run start    # Start the production server
    - `GOOGLE_PRIVATE_KEY`
    - `AUTH_USER`
    - `AUTH_PASSWORD`
+   - `ENLACE_SHEET`
 4. Deploy the project.
 
 Vercel automatically detects the Next.js application and uses the project scripts for the build and production start commands.

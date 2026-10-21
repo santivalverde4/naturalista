@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { addPlant, type TabName } from '@/app/actions';
+import { addPlant, updatePlant, type Plant, type TabName } from '@/app/actions';
 
 const TAB_LABELS: Record<TabName, string> = {
   coleccion: 'Colección',
@@ -10,7 +10,14 @@ const TAB_LABELS: Record<TabName, string> = {
   porIdentificar: 'Por Identificar',
 };
 
-export default function AddPlantModal({ tab }: { tab: TabName }) {
+export default function AddPlantModal({
+  tab,
+  plant,
+}: {
+  tab: TabName;
+  plant?: Plant;
+}) {
+  const isEditing = Boolean(plant);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -34,7 +41,11 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
 
     startTransition(async () => {
       try {
-        await addPlant(tab, { familia, genero, especie });
+        if (plant) {
+          await updatePlant(tab, plant.id, { familia, genero, especie });
+        } else {
+          await addPlant(tab, { familia, genero, especie });
+        }
         setOpen(false);
       } catch (err: any) {
         setError(err?.message || 'Error al guardar. Revisa tu conexion e intenta de nuevo.');
@@ -47,9 +58,13 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
       {/* Botón flotante de agregar */}
       <button
         onClick={openModal}
-        className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-700 active:scale-95 transition-all shadow-sm"
+        className={isEditing
+          ? 'text-green-600 hover:text-green-800 transition-colors text-lg leading-none disabled:opacity-30'
+          : 'bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-700 active:scale-95 transition-all shadow-sm'}
+        title={isEditing ? 'Editar planta' : 'Agregar planta'}
+        aria-label={isEditing ? 'Editar planta' : 'Agregar planta'}
       >
-        + Agregar
+        {isEditing ? '✎' : '+ Agregar'}
       </button>
 
       {/* Overlay + Bottom Sheet modal */}
@@ -58,7 +73,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
           className="fixed inset-0 z-50 flex items-end"
           role="dialog"
           aria-modal="true"
-          aria-label="Agregar planta"
+          aria-label={isEditing ? 'Editar planta' : 'Agregar planta'}
         >
           {/* Fondo oscuro */}
           <div
@@ -72,7 +87,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
 
             <h2 className="text-lg font-bold text-green-900 mb-1">
-              Agregar a {TAB_LABELS[tab]}
+              {isEditing ? 'Editar planta' : `Agregar a ${TAB_LABELS[tab]}`}
             </h2>
             <p className="text-xs text-gray-400 mb-5">
               Solo Familia es obligatorio
@@ -85,6 +100,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
                 </label>
                 <input
                   name="familia"
+                  defaultValue={plant?.familia}
                   placeholder="ej: Araceae"
                   required
                   autoFocus
@@ -98,6 +114,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
                 </label>
                 <input
                   name="genero"
+                  defaultValue={plant?.genero}
                   placeholder="ej: Monstera"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 />
@@ -109,6 +126,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
                 </label>
                 <input
                   name="especie"
+                  defaultValue={plant?.especie}
                   placeholder="ej: deliciosa"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 />
@@ -132,7 +150,7 @@ export default function AddPlantModal({ tab }: { tab: TabName }) {
                   disabled={isPending}
                   className="flex-1 bg-green-600 text-white rounded-full py-3 text-sm font-medium hover:bg-green-700 active:scale-95 transition-all disabled:opacity-60"
                 >
-                  {isPending ? 'Guardando...' : 'Guardar'}
+                  {isPending ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Guardar'}
                 </button>
               </div>
             </form>

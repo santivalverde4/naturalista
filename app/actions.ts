@@ -137,6 +137,57 @@ export async function addPlant(
 }
 
 /**
+ * Actualiza una planta existente buscando su fila por ID.
+ */
+export async function updatePlant(
+  tab: TabName,
+  plantId: string,
+  data: { familia: string; genero: string; especie: string }
+) {
+  if (!TABS[tab] || !plantId || typeof plantId !== 'string') {
+    return;
+  }
+
+  const familia = sanitizeCell(data.familia);
+  if (!familia) {
+    throw new Error('La familia es obligatoria.');
+  }
+
+  const rateLimit = checkRateLimit('updatePlant', 20, 60000);
+  if (!rateLimit.success) {
+    throw new Error('Limite de solicitudes excedido: espera un momento antes de editar nuevamente.');
+  }
+
+  const sheets = getSheetsClient();
+  const spreadsheetId = getSheetId();
+  const sheetInfo = await resolveSheetInfo(sheets, spreadsheetId, tab);
+  const idsRange = escapeSheetRange(sheetInfo.title, 'A2:A');
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: idsRange,
+  });
+
+  const ids = res.data.values ?? [];
+  const rowIndex = ids.findIndex((row) => row && row[0] === plantId);
+  if (rowIndex === -1) {
+    throw new Error('No se encontro la planta. Actualiza la pagina e intenta de nuevo.');
+  }
+
+  const sheetRow = rowIndex + 2;
+  const range = escapeSheetRange(sheetInfo.title, `B${sheetRow}:D${sheetRow}`);
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[familia, sanitizeCell(data.genero), sanitizeCell(data.especie)]],
+    },
+  });
+
+  revalidatePath('/');
+}
+
+/**
  * Elimina una planta por ID de una pestaña.
  * Busca la fila con el ID dado y la elimina con batchUpdate.
  */
