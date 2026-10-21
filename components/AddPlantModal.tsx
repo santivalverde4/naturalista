@@ -7,6 +7,7 @@ const TAB_LABELS: Record<TabName, string> = {
   coleccion: 'Colección',
   muertas: 'Muertas',
   wishlist: 'Wishlist',
+  porIdentificar: 'Por Identificar',
 };
 
 export default function AddPlantModal({ tab }: { tab: TabName }) {

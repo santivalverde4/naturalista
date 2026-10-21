@@ -7,6 +7,7 @@ const TABS = [
   { key: 'coleccion', label: 'Colección' },
   { key: 'muertas', label: 'Muertas' },
   { key: 'wishlist', label: 'Wishlist' },
+  { key: 'porIdentificar', label: 'Por Identificar' },
 ] as const;
 
 export default function TabNav({ activeTab }: { activeTab: string }) {

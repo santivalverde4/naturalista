@@ -52,6 +52,7 @@ export const TABS = {
   coleccion: 'Coleccion',
   muertas: 'Muertas',
   wishlist: 'Wishlist',
+  porIdentificar: 'Por Identificar',
 } as const;
 
 export type TabName = keyof typeof TABS;
@@ -124,6 +125,7 @@ const TAB_ALIASES: Record<TabName, string[]> = {
   coleccion: ['coleccion', 'colección', 'tengo'],
   muertas: ['muertas', 'muerta'],
   wishlist: ['wishlist', 'deseos', 'deseadas'],
+  porIdentificar: ['por identificar'],
 };
 
 export async function resolveSheetInfo(
